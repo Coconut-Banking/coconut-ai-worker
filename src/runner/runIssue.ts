@@ -91,6 +91,15 @@ async function runValidation(repoPath: string, logLines: string[]): Promise<{ pa
   if (installExit !== 0) {
     return { passed: false, output: out.join('\n') };
   }
+  // Run tsc --noEmit to catch parse/syntax errors (even if repo has no "typecheck" script)
+  const tscExit = await runOne('npx', ['tsc', '--noEmit']);
+  if (tscExit !== 0) {
+    const tscOutput = out[out.length - 1] ?? '';
+    const skipTsc =
+      tscOutput.includes('Cannot find module \'typescript\'') ||
+      (tscOutput.includes('tsconfig.json') && tscOutput.includes('not found'));
+    if (!skipTsc) return { passed: false, output: out.join('\n') };
+  }
   if (
     (await runOne('npm', ['run', 'lint'], { skipIfBrokenLint: true })) !== 0
   )

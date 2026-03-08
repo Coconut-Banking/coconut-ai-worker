@@ -151,6 +151,13 @@ ${ctx.fileTree.slice(0, 3000)}
 \`\`\`
 ${fileContentsSection}
 
+## Syntax and code correctness (must follow)
+
+- Output only valid JavaScript/TypeScript/JSX. The code will be validated with \`tsc --noEmit\`; parse or syntax errors will fail the run.
+- In JSX, to map over an array you must use an array literal inside the curly brace: \`{["a", "b"].map(x => ...)}\` — never \`{"a", "b"].map}\` or missing the opening \`[\`. The \`{\` opens JSX expression, then \`[\` starts the array.
+- Do not drop brackets, parentheses, or braces. Preserve the exact syntax of the original file; when editing, change only the minimal tokens (e.g. one string, one JSX block).
+- Copy-paste from the current file content above when possible; only alter the specific lines the plan requires.
+
 ## Task
 
 Generate code edits. For V1:
