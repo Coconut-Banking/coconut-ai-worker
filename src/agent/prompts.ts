@@ -88,6 +88,8 @@ Respond with a single JSON object (no markdown fence, no extra text) with exactl
 `;
 }
 
+const MAX_FILE_CHARS = 80_000;
+
 export function buildCoderPrompt(
   issueTitle: string,
   issueBody: string,
@@ -95,8 +97,25 @@ export function buildCoderPrompt(
   implementationSteps: string[],
   likelyFilesToChange: string[],
   ctx: RepoContext,
-  maxFiles: number
+  maxFiles: number,
+  currentFileContents: Record<string, string> = {}
 ): string {
+  const fileContentsSection =
+    Object.keys(currentFileContents).length === 0
+      ? ''
+      : `
+## Current file contents (MUST preserve; only make minimal surgical edits)
+
+For each file below, you MUST output the COMPLETE file in files_to_modify with ONLY the minimal changes needed for the issue. Do NOT replace with a stub, summary, or simplified version. Preserve every line, import, component, and logic except the specific lines you are changing.
+
+${Object.entries(currentFileContents)
+  .map(
+    ([path, content]) =>
+      `### ${path}\n\`\`\`\n${content.length > MAX_FILE_CHARS ? content.slice(0, MAX_FILE_CHARS) + '\n\n// ... (file truncated; preserve the rest of the file unchanged) ...' : content}\n\`\`\``
+  )
+  .join('\n\n')}
+`;
+
   return `You are a senior engineer implementing a GitHub issue in the Coconut repo.
 
 ## GitHub issue
@@ -130,20 +149,22 @@ ${ctx.projectSpecMd.slice(0, 2000)}
 \`\`\`
 ${ctx.fileTree.slice(0, 3000)}
 \`\`\`
+${fileContentsSection}
 
 ## Task
 
 Generate code edits. For V1:
 - Cap to at most ${maxFiles} files (create or replace).
-- Prefer full-file content for each modified or new file.
+- For files_to_modify: you are given the current file content above. Your "content" MUST be the COMPLETE file with ONLY minimal surgical changes. Do NOT output a stub or simplified version — preserve the entire file and change only what the plan specifies.
+- For files_to_create: output full file content as needed.
 - Output only valid JSON (no markdown, no \`\`\`json). Use this shape:
 {
   "summary": "string",
-  "files_to_modify": [{"path": "relative/path.ts", "content": "full file content"}],
+  "files_to_modify": [{"path": "relative/path.ts", "content": "full file content (entire file with minimal edits)"}],
   "files_to_create": [{"path": "relative/new.ts", "content": "full file content"}],
   "changed_files": ["path1", "path2"],
   "rationale": "string"
 }
-If the model is unsure, state assumptions in rationale. Prefer minimal, surgical changes.
+CRITICAL: When modifying an existing file, your output must preserve the whole file and change only the minimal section (e.g. one block or a few lines). If the model is unsure, state assumptions in rationale.
 `;
 }

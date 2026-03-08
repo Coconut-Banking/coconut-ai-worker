@@ -17,13 +17,18 @@ async function main(): Promise<void> {
   console.log('Issue:', `#${summary.issueNumber}`, summary.issueTitle);
   console.log('Sandbox:', summary.sandboxPath);
   console.log('Changed files:', summary.changedFiles.length ? summary.changedFiles.join(', ') : '(none)');
-  console.log('Validation:', summary.validationPassed ? 'PASSED' : 'FAILED');
+  if (summary.dryRun) {
+    console.log('Validation: (skipped — DRY_RUN)');
+    console.log('(DRY_RUN: stopped after planner)');
+  } else {
+    console.log('Validation:', summary.validationPassed ? 'PASSED' : 'FAILED');
+  }
   if (summary.branchName) console.log('Branch:', summary.branchName);
   if (summary.prUrl) console.log('PR:', summary.prUrl);
   if (summary.error) console.log('Error:', summary.error);
-  if (summary.dryRun) console.log('(DRY_RUN: stopped after planner)');
   console.log('-------------------\n');
-  process.exit(summary.validationPassed ? 0 : 1);
+  const exitCode = summary.dryRun ? 0 : (summary.validationPassed ? 0 : 1);
+  process.exit(exitCode);
 }
 
 main().catch((err) => {

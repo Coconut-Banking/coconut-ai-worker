@@ -22,7 +22,8 @@ export async function runCoder(
   issueTitle: string,
   issueBody: string,
   plan: PlannerOutput,
-  ctx: RepoContext
+  ctx: RepoContext,
+  currentFileContents: Record<string, string> = {}
 ): Promise<CoderOutput> {
   const env = loadEnv();
   const prompt = buildCoderPrompt(
@@ -32,7 +33,8 @@ export async function runCoder(
     plan.implementationSteps,
     plan.likelyFilesToChange,
     ctx,
-    env.MAX_FILES_CHANGED
+    env.MAX_FILES_CHANGED,
+    currentFileContents
   );
   const client = getOpenAI();
   log.info({ model: env.OPENAI_MODEL_CODER }, 'coder: calling OpenAI');
