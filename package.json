@@ -1,0 +1,32 @@
+{
+  "name": "coconut-ai-worker",
+  "version": "1.0.0",
+  "description": "Local-first autonomous coding worker for Coconut: process GitHub issues, plan with OpenAI, apply edits, validate, and optionally open PRs.",
+  "type": "module",
+  "main": "dist/cli/run-once.js",
+  "scripts": {
+    "dev": "tsx watch src/cli/run-once.ts",
+    "build": "tsc",
+    "start": "node dist/cli/run-once.js",
+    "run-once": "tsx src/cli/run-once.ts"
+  },
+  "keywords": ["coconut", "ai", "worker", "github", "openai"],
+  "license": "MIT",
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "@octokit/rest": "^20.0.2",
+    "dotenv": "^16.4.5",
+    "openai": "^4.73.0",
+    "execa": "^9.5.2",
+    "pino": "^9.5.0",
+    "pino-pretty": "^13.0.0",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.1",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2"
+  }
+}
